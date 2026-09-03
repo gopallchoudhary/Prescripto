@@ -1,16 +1,28 @@
 import { createContext, useState } from "react";
 import { toast } from 'react-toastify'
 import axios from 'axios'
+import Cookies from 'js-cookie'
 
 
 export const DoctorContext = createContext()
 
+const getErrorMessage = (error, fallback) => error?.response?.data?.message || error?.message || fallback
+
 const DoctorContextProvider = ({ children }) => {
     const backendURL = import.meta.env.VITE_BACKEND_URL;
-    const [doctorToken, setDoctorToken] = useState('')
+    const [doctorToken, setDoctorTokenState] = useState(Cookies.get('doctorToken') || '')
     const [appointments, setAppointments] = useState([])
     const [dashData, setDashData] = useState(false)
     const [profileData, setProfileData] = useState(false)
+
+    const setDoctorToken = (token) => {
+        setDoctorTokenState(token || '')
+        if (token) {
+            Cookies.set('doctorToken', token, { expires: 7 })
+        } else {
+            Cookies.remove('doctorToken')
+        }
+    }
 
     //. get appointments 
     const getAppointments = async () => {
@@ -19,13 +31,11 @@ const DoctorContextProvider = ({ children }) => {
 
             if (data.success) {
                 setAppointments(data.appointments.reverse())
-                console.log(data.appointments);
             } else {
-                toast.error(data.messsage)
+                toast.error(data.message)
             }
         } catch (error) {
-            console.log(error.messsage);
-            toast.error(error.messsage)
+            toast.error(getErrorMessage(error, "Failed to fetch appointments"))
         }
     }
 
@@ -34,17 +44,15 @@ const DoctorContextProvider = ({ children }) => {
         try {
             const { data } = await axios.post(`${backendURL}/api/doctor/appointment-completed`, { appointmentId }, { withCredentials: true })
 
-            console.log(data);
-
             if (data.success) {
-                toast.success(data.messsage)
+                toast.success(data.message)
                 getAppointments()
+                getDoctorDashboard()
             } else {
-                toast.error(data.messsage)
+                toast.error(data.message)
             }
         } catch (error) {
-            console.error(error);
-            toast.error(error.messsage)
+            toast.error(getErrorMessage(error, "Failed to complete appointment"))
         }
     }
 
@@ -54,14 +62,14 @@ const DoctorContextProvider = ({ children }) => {
             const { data } = await axios.post(`${backendURL}/api/doctor/appointment-cancelled`, { appointmentId }, { withCredentials: true })
 
             if (data.success) {
-                toast.success(data.messsage)
+                toast.success(data.message)
                 getAppointments()
+                getDoctorDashboard()
             } else {
-                toast.error(data.messsage)
+                toast.error(data.message)
             }
         } catch (error) {
-            console.error(error);
-            toast.error(error.messsage)
+            toast.error(getErrorMessage(error, "Failed to cancel appointment"))
         }
     }
 
@@ -72,15 +80,11 @@ const DoctorContextProvider = ({ children }) => {
             const { data } = await axios.get(`${backendURL}/api/doctor/dashboard`, { withCredentials: true })
             if (data.success) {
                 setDashData(data.docData)
-                console.log(data.docData);
-
-                toast.success(data.messsage)
             } else {
-                toast.error(data.messsage)
+                toast.error(data.message)
             }
         } catch (error) {
-            console.error(error.messsage);
-            toast.error(error.messsage)
+            toast.error(getErrorMessage(error, "Failed to fetch dashboard"))
         }
     }
 
@@ -92,11 +96,27 @@ const DoctorContextProvider = ({ children }) => {
                 setProfileData(data.doctorProfileData)
 
             } else {
-                toast.error(data.messsage)
+                toast.error(data.message)
             }
         } catch (error) {
-            console.error("Error: ", error.messsage);
-            toast.error(error.messsage)
+            toast.error(getErrorMessage(error, "Failed to fetch profile"))
+        }
+    }
+
+    //. update profile data
+    const updateProfile = async ({ fees, available, address }) => {
+        try {
+            const { data } = await axios.post(`${backendURL}/api/doctor/update-profile`, { fees, available, address }, { withCredentials: true })
+            if (data.success) {
+                toast.success(data.message)
+                await getProfileData()
+                return true
+            }
+            toast.error(data.message)
+            return false
+        } catch (error) {
+            toast.error(getErrorMessage(error, "Failed to update profile"))
+            return false
         }
     }
 
@@ -106,7 +126,7 @@ const DoctorContextProvider = ({ children }) => {
         doctorToken, setDoctorToken, backendURL,
         appointments, getAppointments,
         completeAppointment, cancelAppointment,
-        dashData, setDashData, getDoctorDashboard, getProfileData,
+        dashData, setDashData, getDoctorDashboard, getProfileData, updateProfile,
         profileData, setProfileData
     }
 

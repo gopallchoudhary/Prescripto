@@ -34,7 +34,6 @@ const AdminContextProvider = ({ children }) => {
 
         } catch (error) {
             toast.error(error.message)
-            res.json({ success: false, message: "failed" })
         }
     }
 
@@ -68,7 +67,7 @@ const AdminContextProvider = ({ children }) => {
                 toast.error(data.message)
             }
         } catch (error) {
-            toast.error(error.messsage)
+            toast.error(error.message)
         }
     }
 

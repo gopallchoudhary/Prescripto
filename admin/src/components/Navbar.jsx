@@ -14,16 +14,14 @@ const Navbar = () => {
     const logout = async () => {
         if (adminToken) {
             await axios.get(`${backendUrl}/api/admin/logout`, { withCredentials: true })
-            adminToken && setAdminToken('')
+            setAdminToken('')
+            Cookies.remove('adminToken')
             navigate('/')
-            console.log("admin logged out");
-            
         } else {
             await axios.get(`${backendUrl}/api/doctor/logout`, { withCredentials: true })
-            doctorToken && setDoctorToken('')
+            setDoctorToken('')
+            Cookies.remove('doctorToken')
             navigate('/')
-            console.log("doctor logged out");
-            
         }
 
     }

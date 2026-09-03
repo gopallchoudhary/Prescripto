@@ -2,10 +2,15 @@ import React, { useContext, useEffect, useState } from "react";
 import { DoctorContext } from "../../contexts/DoctorContext";
 
 const DoctorProfile = () => {
-  const { profileData, getProfileData, doctorToken, setProfileData } =
+  const { profileData, getProfileData, doctorToken, updateProfile } =
     useContext(DoctorContext);
 
   const [isEdit, setIsEdit] = useState(false)
+  const [fees, setFees] = useState('')
+  const [line1, setLine1] = useState('')
+  const [line2, setLine2] = useState('')
+  const [available, setAvailable] = useState(true)
+  const [saving, setSaving] = useState(false)
 
 
   useEffect(() => {
@@ -13,6 +18,34 @@ const DoctorProfile = () => {
       getProfileData();
     }
   }, [doctorToken]);
+
+  useEffect(() => {
+    if (profileData) {
+      setFees(profileData.fees ?? '')
+      setLine1(profileData.address?.line1 ?? '')
+      setLine2(profileData.address?.line2 ?? '')
+      setAvailable(!!profileData.available)
+    }
+  }, [profileData, isEdit]);
+
+  const handleCancel = () => {
+    setIsEdit(false)
+    setFees(profileData.fees ?? '')
+    setLine1(profileData.address?.line1 ?? '')
+    setLine2(profileData.address?.line2 ?? '')
+    setAvailable(!!profileData.available)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    const ok = await updateProfile({
+      fees: Number(fees),
+      available,
+      address: { line1, line2 },
+    })
+    setSaving(false)
+    if (ok) setIsEdit(false)
+  }
   return (
     profileData && (
       <div>
@@ -44,28 +77,65 @@ const DoctorProfile = () => {
             </div>
 
             <p className="text-gray-600 font-medium mt-4">
-              Appointment Fees <span className="text-gray-800">{`$${profileData.fees}`}</span>
+              Appointment Fees{' '}
+              {isEdit ? (
+                <input
+                  type="number"
+                  min="0"
+                  value={fees}
+                  onChange={(e) => setFees(e.target.value)}
+                  className="border rounded px-2 py-1 text-gray-800 w-28"
+                />
+              ) : (
+                <span className="text-gray-800">{`$${profileData.fees}`}</span>
+              )}
             </p>
 
             <div className="flex gap-2 py-2">
               <p>Address</p>
-              <p className="text-sm">{profileData.address.line1}
-                <br />
-                {profileData.address.line2}
-              </p>
+              {isEdit ? (
+                <div className="flex flex-col gap-1">
+                  <input
+                    value={line1}
+                    onChange={(e) => setLine1(e.target.value)}
+                    placeholder="Address line 1"
+                    className="border rounded px-2 py-1 text-sm"
+                  />
+                  <input
+                    value={line2}
+                    onChange={(e) => setLine2(e.target.value)}
+                    placeholder="Address line 2"
+                    className="border rounded px-2 py-1 text-sm"
+                  />
+                </div>
+              ) : (
+                <p className="text-sm">{profileData.address?.line1}
+                  <br />
+                  {profileData.address?.line2}
+                </p>
+              )}
             </div>
 
             <div className="flex gap-1 pt-2">
-              <input type="checkbox" />
-              <label htmlFor="">Available</label>
+              <input
+                type="checkbox"
+                id="available"
+                checked={available}
+                disabled={!isEdit}
+                onChange={(e) => setAvailable(e.target.checked)}
+              />
+              <label htmlFor="available">Available</label>
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setIsEdit((prev) => !prev)} className={`py-1 px-4 text-sm border   rounded-full mt-5 border-primary hover:bg-primary hover:text-white transition-all ease-in-out duraton-500 ${isEdit ? "hover:bg-red-400" : ""}`}>{isEdit ? "Cancel" : "Edit"}</button>
-
-              {
-                isEdit && <button className="py-1 px-4 text-sm border  border-primary rounded-full mt-5 hover:bg-primary hover:text-white transition-all ease-in-out duraton-500">Save</button>
-              }
+              {isEdit ? (
+                <>
+                  <button onClick={handleCancel} className="py-1 px-4 text-sm border rounded-full mt-5 border-primary hover:bg-red-400 hover:text-white transition-all ease-in-out duraton-500">Cancel</button>
+                  <button onClick={handleSave} disabled={saving} className="py-1 px-4 text-sm border border-primary rounded-full mt-5 hover:bg-primary hover:text-white transition-all ease-in-out duraton-500 disabled:opacity-50">{saving ? "Saving..." : "Save"}</button>
+                </>
+              ) : (
+                <button onClick={() => setIsEdit(true)} className="py-1 px-4 text-sm border rounded-full mt-5 border-primary hover:bg-primary hover:text-white transition-all ease-in-out duraton-500">Edit</button>
+              )}
             </div>
           </div>
         </div>

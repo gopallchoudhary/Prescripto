@@ -19,6 +19,18 @@ const DoctorAppointments = () => {
       getAppointments();
     }
   }, [doctorToken]);
+
+  if (!appointments || appointments.length === 0) {
+    return (
+      <div className="w-full max-w-6xl m-5">
+        <p className="mb-3 font-medium text-lg">All Appointments</p>
+        <div className="bg-white border rounded text-sm px-6 py-8 text-gray-500">
+          No appointments found.
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-6xl m-5">
       <p className="mb-3 font-medium text-lg">All Appointments</p>

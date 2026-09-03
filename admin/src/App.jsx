@@ -6,12 +6,11 @@ import 'react-toastify/ReactToastify.css'
 import { AdminContext } from './contexts/AdminContext';
 import Navbar from './components/Navbar';
 import Sidebar from './components/Sidebar';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import Dashboard from './pages/Admin/Dashboard';
 import Appointments from './pages/Admin/AllAppointments';
 import AddDoctors from './pages/Admin/AddDoctors';
 import DoctorsList from './pages/Admin/DoctorsList';
-import Home from './pages/Admin/Home';
 import { DoctorContext } from './contexts/DoctorContext';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorAppointments from './pages/Doctor/DoctorAppointments';
@@ -30,17 +29,22 @@ function App() {
       <div className='flex items-start'>
         <Sidebar />
         <Routes>
+          {/* Default landing by role */}
+          <Route path='/' element={adminToken ? <Navigate to="/admin-dashboard" replace /> : <Navigate to="/doctor-dashboard" replace />} />
+
           {/* Admin Routes */}
-          <Route path='/' element={<Home />} />
-          <Route path='/admin-dashboard' element={<Dashboard />} />
-          <Route path='/all-appointments' element={<Appointments />} />
-          <Route path='/add-doctor' element={<AddDoctors />} />
-          <Route path='/doctors-list' element={<DoctorsList />} />
+          <Route path='/admin-dashboard' element={adminToken ? <Dashboard /> : <Navigate to="/" replace />} />
+          <Route path='/all-appointments' element={adminToken ? <Appointments /> : <Navigate to="/" replace />} />
+          <Route path='/add-doctor' element={adminToken ? <AddDoctors /> : <Navigate to="/" replace />} />
+          <Route path='/doctors-list' element={adminToken ? <DoctorsList /> : <Navigate to="/" replace />} />
 
           {/* Doctor Routes */}
-          <Route path='/doctor-dashboard' element={<DoctorDashboard/>}/>
-          <Route path='/doctor-appointments' element={<DoctorAppointments/>}/>
-          <Route path='/doctor-profile' element={<DoctorProfile/>}/>
+          <Route path='/doctor-dashboard' element={doctorToken ? <DoctorDashboard/> : <Navigate to="/" replace />}/>
+          <Route path='/doctor-appointments' element={doctorToken ? <DoctorAppointments/> : <Navigate to="/" replace />}/>
+          <Route path='/doctor-profile' element={doctorToken ? <DoctorProfile/> : <Navigate to="/" replace />}/>
+
+          {/* Unknown paths fall back to role landing */}
+          <Route path='*' element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </div>

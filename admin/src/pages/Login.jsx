@@ -1,5 +1,4 @@
 import React, { useContext, useState } from "react";
-import { assets } from "../assets/assets.js";
 import { AdminContext } from "../contexts/AdminContext.jsx";
 import axios from 'axios'
 import { toast } from "react-toastify";
@@ -12,7 +11,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const { setAdminToken, backendUrl } = useContext(AdminContext);
-  const { backendURL, doctorToken, setDoctorToken } = useContext(DoctorContext)
+  const { backendURL, setDoctorToken } = useContext(DoctorContext)
   const navigate = useNavigate()
 
 
@@ -40,7 +39,7 @@ const Login = () => {
 
         if (data.success) {
           setDoctorToken(data?.doctorToken)
-          console.log(doctorToken);
+          navigate("/doctor-dashboard")
         } else {
           toast.error(data.message)
         }
